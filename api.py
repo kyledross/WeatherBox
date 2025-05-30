@@ -5,7 +5,7 @@ from weatherbox.weather_service import WeatherAlertService
 from datetime import timezone
 
 app = FastAPI(title="WeatherBox API",
-              description="A simple API for fetching weather alerts from the National Weather Service."
+              description="A simple API for fetching weather alerts from the National Weather Service.  "
                           "Given a city and state, it returns the most important unexpired weather alert for that location, if any.",
               version="1.0.0")
 service = WeatherAlertService()
