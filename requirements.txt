@@ -1,2 +1,4 @@
-requests>=2.25.0
+requests>=2.32.0
 geocoder>=1.38.1
+fastapi~=0.115.12
+pydantic~=2.11.5

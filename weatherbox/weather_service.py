@@ -318,7 +318,7 @@ class WeatherAlertService:
 
         try:
             response = requests.get(points_url, headers=headers)
-            response.raise_for_status() # todo what does this doq
+            response.raise_for_status()
             points_data = response.json()
 
             # Extract the county and zone information
