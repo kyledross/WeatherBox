@@ -10,7 +10,6 @@ from typing import Tuple
 
 from weatherbox.weather_service import WeatherAlertService
 
-
 def setup_logging():
     """Set up logging configuration."""
     logging.basicConfig(
@@ -18,7 +17,6 @@ def setup_logging():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[logging.StreamHandler()]
     )
-
 
 def parse_arguments() -> Tuple[str, str]:
     """Parse command line arguments."""
