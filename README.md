@@ -82,10 +82,10 @@ WeatherBox includes a FastAPI-based REST API that allows you to access weather a
 To start the API server, run:
 
 ```
-uvicorn api:app --reload
+--reload --host 0.0.0.0 --port 8080
 ```
 
-This will start the server on `http://localhost:8000`.
+This will start the server on `http://localhost:8080` and should be reachable by other clients on the network (assumung no firewall blocking on the host).  
 
 #### API Endpoints
 
@@ -129,8 +129,8 @@ GET /weather-alert/NY/New%20York
 
 FastAPI automatically generates interactive API documentation. Once the server is running, you can access:
 
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+- Swagger UI: `http://localhost:8080/docs`
+- ReDoc: `http://localhost:8080/redoc`
 
 ## Technical Background
 
