@@ -9,8 +9,7 @@ A Python library and API for fetching and processing weather alerts from the Nat
 - Use coordinates to get weather alerts from the NWS API
 - Parse and model weather alerts with detailed information
 - Classify alerts by importance based on severity, urgency, and certainty
-- Filter alerts to get the most important non-expired alert for each location
-- Simple command-line interface for demonstration
+- Filter alerts to get the single most important non-expired alert for each location
 - REST API for accessing weather alerts via HTTP
 
 ## Installation
