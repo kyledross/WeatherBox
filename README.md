@@ -2,15 +2,24 @@
 
 A Python library and API for fetching and processing weather alerts from the National Weather Service (NWS) API.
 
-## Features
+### Important
+This code is intended for educational and demonstration purposes only.  
+It must not be used in life- or property-threatening situations.  
+Always use a reliable source for weather information, such as a weather radio,  
+local radio, or local television.
 
-- Fetch weather alerts for specific locations using city and state names
-- Convert city and state to coordinates using geocoding
-- Use coordinates to get weather alerts from the NWS API
-- Parse and model weather alerts with detailed information
-- Classify alerts by importance based on severity, urgency, and certainty
-- Filter alerts to get the single most important non-expired alert for each location
-- REST API for accessing weather alerts via HTTP
+**_Use this code at your own risk._**
+## Features
+This API simplifies fetching and consuming weather alert information from the National Weather Service.  
+
+This API:
+
+- Fetches weather alerts for specific locations using city and state names
+- Converts city and state to coordinates using geocoding
+- Uses coordinates to get weather alerts from the NWS API
+- Parses and models weather alerts with detailed information
+- Classifies alerts by importance based on severity, urgency, and certainty
+- Filters alerts to get the single most important non-expired alert for the location
 
 ## Installation
 
@@ -33,45 +42,6 @@ A Python library and API for fetching and processing weather alerts from the Nat
 
 ## Usage
 
-### Command-line Interface
-
-The project includes test scripts that demonstrate the functionality:
-
-```
-python tests/test_location.py
-```
-
-This will fetch weather alerts for Washington, DC and display them in the console.
-
-You can modify the script to test different locations by editing the city and state variables in the script.
-
-### Using the Library in Your Code
-
-```python
-from weatherbox.weather_service import WeatherAlertService
-
-# Create a weather alert service
-service = WeatherAlertService()
-
-# Get coordinates for a location
-latitude, longitude = service.get_coordinates("New York", "NY")
-print(f"Coordinates: {latitude}, {longitude}")
-
-# Get all alerts for a location
-alerts = service.get_alerts_for_location("New York", "NY")
-print(f"Found {len(alerts)} alerts")
-
-# Get the most important non-expired alert for a location
-important_alert = service.get_most_important_alerts_for_location("New York", "NY")
-if important_alert:
-    print(f"Most important alert: {important_alert.headline}")
-else:
-    print("No active alerts for this location")
-
-# You can also get alerts directly using coordinates
-alerts_by_coords = service.get_alerts_for_coordinates(40.7128, -74.0060)
-```
-
 ### REST API
 
 WeatherBox includes a FastAPI-based REST API that allows you to access weather alerts via HTTP requests.
@@ -84,7 +54,7 @@ To start the API server, run:
 WeatherBox/.venv/bin/python -m uvicorn api:app --reload --host 0.0.0.0 --port 8080
 ```
 
-This will start the server on `http://localhost:8080` and should be reachable by other clients on the network (assumung no firewall blocking on the host).  
+This will start the server on `http://localhost:8080` and should be reachable by other clients on the network (assuming no firewall blocking on the host).  
 
 #### API Endpoints
 
@@ -140,7 +110,7 @@ WeatherBox is designed to simplify the process of fetching and processing weathe
 1. **Geocoding**: When you provide a city and state, WeatherBox uses the ArcGIS geocoding service to convert this location into latitude and longitude coordinates.
 
 2. **NWS API Integration**: WeatherBox then queries the NWS API using these coordinates to:
-   - First get the forecast office and zone information for the coordinates
+   - First, get the forecast office and zone information for the coordinates
    - Then fetch weather alerts for both the county and forecast zone associated with those coordinates
 
 3. **Alert Processing**: The service processes the raw API responses to:
@@ -150,7 +120,6 @@ WeatherBox is designed to simplify the process of fetching and processing weathe
    - Filter out expired alerts
 
 4. **Multiple Endpoint Strategy**: The service implements a robust strategy for fetching alerts by trying multiple endpoints and formats:
-   - It attempts different URL patterns for SAME codes
    - It handles both county and zone-based alerts
    - It includes fallback mechanisms if certain endpoints fail
 
@@ -193,44 +162,4 @@ The REST API is built using FastAPI, a modern, fast web framework for building A
 3. Handles errors and edge cases gracefully
 4. Provides automatic documentation via Swagger UI and ReDoc
 
-## Library API Documentation
-
-### WeatherAlertService
-
-The main class for interacting with the NWS API.
-
-#### Methods:
-
-- `get_coordinates(city: str, state: str) -> Tuple[float, float]`
-
-  Get the latitude and longitude coordinates for a city and state.
-
-- `get_alerts_for_coordinates(latitude: float, longitude: float) -> List[WeatherAlert]`
-
-  Get weather alerts for specific coordinates.
-
-- `get_alerts_for_location(city: str, state: str) -> List[WeatherAlert]`
-
-  Get weather alerts for a specific city and state.
-
-- `get_most_important_alerts_for_location(city: str, state: str) -> Optional[WeatherAlert]`
-
-  Get the most important non-expired alert for a specific city and state.
-
-- `get_alerts_for_same_codes(same_codes: List[str]) -> List[WeatherAlert]`
-
-  Get all weather alerts for a list of SAME codes.
-
-- `get_most_important_alerts(same_codes: List[str]) -> Dict[str, Optional[WeatherAlert]]`
-
-  Get the most important non-expired alert for each SAME code.
-
-### WeatherAlert
-
-A data class representing a weather alert.
-
-#### Properties:
-
-- `is_expired: bool` - Check if the alert has expired
-- `importance_score: int` - Calculate an importance score for the alert
 
