@@ -1,20 +1,19 @@
 import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
-
 import geocoder
 import requests
-
 from weatherbox.models.alert import WeatherAlert, AlertSeverity, AlertUrgency, AlertCertainty
-
 
 class WeatherAlertService:
     """
     Service for fetching and processing weather alerts from the National Weather Service API.
     """
-
     BASE_URL = "https://api.weather.gov"
     ALERTS_ENDPOINT = "/alerts/active"
+
+    # Maximum number of entries in coordinates cache
+    MAX_CACHE_SIZE = 100
 
     def __init__(self, user_agent: str = "WeatherBox/1.0"):
         """
@@ -25,49 +24,60 @@ class WeatherAlertService:
         """
         self.user_agent = user_agent
         self.logger = logging.getLogger(__name__)
+        self._coordinates_cache = {}
+
+
+    def _maintain_cache_size(self):
+        """Remove oldest entries if cache exceeds maximum size."""
+        if len(self._coordinates_cache) >= self.MAX_CACHE_SIZE:
+            # Remove oldest entries to make space
+            oldest_keys = sorted(self._coordinates_cache.keys())[:len(self._coordinates_cache) - self.MAX_CACHE_SIZE + 1]
+            for key in oldest_keys:
+                del self._coordinates_cache[key]
+
 
     def _parse_alerts(self, data: Dict, same_code: str) -> List[WeatherAlert]:
-        """
-        Parse the API response into WeatherAlert objects.
+            """
+            Parse the API response into WeatherAlert objects.
 
-        Args:
-            data: API response data.
-            same_code: SAME code the alerts are for.
+            Args:
+                data: API response data.
+                same_code: SAME code the alerts are for.
 
-        Returns:
-            List of WeatherAlert objects.
-        """
-        alerts = []
+            Returns:
+                List of WeatherAlert objects.
+            """
+            alerts = []
 
-        for feature in data.get("features", []):
-            properties = feature.get("properties", {})
+            for feature in data.get("features", []):
+                properties = feature.get("properties", {})
 
-            # Parse dates
-            onset = self._parse_date(properties.get("onset"))
-            expires = self._parse_date(properties.get("expires"))
+                # Parse dates
+                onset = self._parse_date(properties.get("onset"))
+                expires = self._parse_date(properties.get("expires"))
 
-            if not expires:
-                self.logger.warning(f"Alert {properties.get('id')} has no expiration date, skipping")
-                continue
+                if not expires:
+                    self.logger.warning(f"Alert {properties.get('id')} has no expiration date, skipping")
+                    continue
 
-            # Create alert object
-            alert = WeatherAlert(
-                id=properties.get("id", ""),
-                same_codes=[same_code],
-                event=properties.get("event", ""),
-                headline=properties.get("headline", ""),
-                description=properties.get("description", ""),
-                instruction=properties.get("instruction"),
-                severity=AlertSeverity.from_string(properties.get("severity", "")),
-                urgency=AlertUrgency.from_string(properties.get("urgency", "")),
-                certainty=AlertCertainty.from_string(properties.get("certainty", "")),
-                onset=onset,
-                expires=expires
-            )
+                # Create alert object
+                alert = WeatherAlert(
+                    id=properties.get("id", ""),
+                    same_codes=[same_code],
+                    event=properties.get("event", ""),
+                    headline=properties.get("headline", ""),
+                    description=properties.get("description", ""),
+                    instruction=properties.get("instruction"),
+                    severity=AlertSeverity.from_string(properties.get("severity", "")),
+                    urgency=AlertUrgency.from_string(properties.get("urgency", "")),
+                    certainty=AlertCertainty.from_string(properties.get("certainty", "")),
+                    onset=onset,
+                    expires=expires
+                )
 
-            alerts.append(alert)
+                alerts.append(alert)
 
-        return alerts
+            return alerts
 
     def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
         """
@@ -103,6 +113,12 @@ class WeatherAlertService:
             ValueError: If the coordinates could not be determined.
         """
         location = f"{city}, {state}"
+
+        # Check cache first
+        if location in self._coordinates_cache:
+            self.logger.info(f"Using cached coordinates for {location}")
+            return self._coordinates_cache[location]
+
         self.logger.info(f"Getting coordinates for {location}")
 
         # Use geocoder to get coordinates
@@ -111,6 +127,9 @@ class WeatherAlertService:
         if not g.ok:
             raise ValueError(f"Could not determine coordinates for {location}")
 
+        # Cache the coordinates while maintaining size limit
+        self._maintain_cache_size()
+        self._coordinates_cache[location] = (g.lat, g.lng)
         return g.lat, g.lng
 
     def get_alerts_for_coordinates(self, latitude: float, longitude: float) -> List[WeatherAlert]:
