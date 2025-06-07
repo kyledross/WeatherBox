@@ -126,7 +126,9 @@ class WeatherAlert:
         return (
             severity_score[self.severity] * 100 +
             urgency_score[self.urgency] * 10 +
-            certainty_score[self.certainty]
+            certainty_score[self.certainty] +
+            (20 if self.certainty == AlertCertainty.OBSERVED else
+             10 if self.certainty == AlertCertainty.LIKELY else 0)
         )
     
     def __str__(self) -> str:
