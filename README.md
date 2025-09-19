@@ -163,3 +163,26 @@ The REST API is built using FastAPI, a modern, fast web framework for building A
 4. Provides automatic documentation via Swagger UI and ReDoc
 
 
+
+## Run with Docker
+
+You can run the WeatherBox API in a lightweight Docker container.
+
+Build the image:
+
+```
+docker build -t weatherbox:latest .
+```
+
+Run the container (maps host port 8080 to container port 8000):
+
+```
+docker run --rm -p 8080:8000 weatherbox:latest
+```
+
+The API will be available at:
+- http://localhost:8080
+- Docs: http://localhost:8080/docs
+- ReDoc: http://localhost:8080/redoc
+
+To change the port, adjust the -p flag (format: host_port:container_port). The container listens on 8000 by default.

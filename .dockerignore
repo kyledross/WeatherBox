@@ -1,0 +1,23 @@
+# Ignore files not needed in the Docker image
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+.env
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+coverage*
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Tests and docs are not required in the runtime image
+/tests/
+/docs/
