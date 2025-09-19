@@ -186,3 +186,24 @@ The API will be available at:
 - ReDoc: http://localhost:8080/redoc
 
 To change the port, adjust the -p flag (format: host_port:container_port). The container listens on 8000 by default.
+
+## Run with Podman
+
+You can also run the WeatherBox API using Podman.
+
+Build the image:
+
+```
+podman build -t localhost/weatherbox.latest .
+```
+
+Run the container (explicitly bind localhost 127.0.0.1 to ensure host access):
+
+```
+podman run -d -p 127.0.0.1:8000:8000 localhost/weatherbox.latest
+```
+
+Notes:
+- In some environments, using `-p 8000:8000` may result in "connection refused" from the host. Explicitly binding to `127.0.0.1` resolves this by ensuring the port is reachable on localhost.
+- Once running, the API docs are available at `http://localhost:8000/docs` and ReDoc at `http://localhost:8000/redoc`.
+- View logs with `podman logs <container_id>` and stop the container with `podman stop <container_id>`.
