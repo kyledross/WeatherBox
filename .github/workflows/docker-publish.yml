@@ -1,48 +1,45 @@
 name: Build and Push Multi-Arch Docker Image
 
-# This workflow runs on pushes to the main branch
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest # Use a standard Linux runner
-
+    runs-on: ubuntu-latest
     steps:
-      # 1. Check out your repository's code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up QEMU for cross-platform builds
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 3. Set up Docker Buildx, the multi-architecture builder
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 4. Log in to Docker Hub using your secrets
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 5. Build the image for both platforms and push it to Docker Hub
+      - name: Extract metadata (tags, labels, description)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: kyledross69/weatherbox
+          tags: latest
+          # This part reads the README.md and sets it as the description
+          annotations: |
+            org.opencontainers.image.description_file=./README.md
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64,linux/arm64 # The architectures to build for
-          push: true # Actually push the image
-          tags: kyledross69/weatherbox:latest # The tag for your image
-
-      # 6. Update Docker Hub description from README.md
-      - name: Update Docker Hub Description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: kyledross69/weatherbox
-          readme-filepath: ./README.md
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # This passes the annotations to the build
+          annotations: ${{ steps.meta.outputs.annotations }}
