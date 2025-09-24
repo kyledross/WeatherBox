@@ -38,7 +38,7 @@ jobs:
           push: true # Actually push the image
           tags: kyledross69/weatherbox:latest # The tag for your image
 
-      # 6. Update the Docker Hub Repository Description
+      # 6. Update Docker Hub description from README.md
       - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
         with:
