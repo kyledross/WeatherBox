@@ -2,13 +2,29 @@
 
 A Python library and API for fetching and processing weather alerts from the National Weather Service (NWS) API.
 
-### Important
-This code is intended for educational and demonstration purposes only.  
-It must not be used in life- or property-threatening situations.  
-Always use a reliable source for weather information, such as a weather radio,  
-local radio, or local television.
+> Important
+> This code is intended for educational and demonstration purposes only.
+> It must not be used in life- or property-threatening situations.
+> Always use a reliable source for weather information, such as a weather radio,
+> local radio, or local television.
+>
+> Use this code at your own risk.
+## Running with Docker (Recommended)
 
-**_Use this code at your own risk._**
+### 1. Pull the Image from Docker Hub
+```
+docker pull kyledross69/weatherbox:latest
+```
+
+### 2. Run the Container
+```
+docker run --rm -p 8081:8000 kyledross69/weatherbox:latest
+```
+
+The API will be available at http://localhost:8081
+
+Note: Fedora/RHEL users can substitute podman for docker in the commands above.
+
 ## Features
 This API simplifies fetching and consuming weather alert information from the National Weather Service.  
 
@@ -21,85 +37,7 @@ This API:
 - Classifies alerts by importance based on severity, urgency, and certainty
 - Filters alerts to get the single most important non-expired alert for the location
 
-## Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/WeatherBox.git
-   cd WeatherBox
-   ```
-
-2. Create a virtual environment and activate it:
-   ```
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. Install the required dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-### REST API
-
-WeatherBox includes a FastAPI-based REST API that allows you to access weather alerts via HTTP requests.
-
-#### Starting the API Server
-
-To start the API server, run:
-
-```
-WeatherBox/.venv/bin/python -m uvicorn api:app --reload --host 0.0.0.0 --port 8080
-```
-
-This will start the server on `http://localhost:8080` and should be reachable by other clients on the network (assuming no firewall blocking on the host).  
-
-#### API Endpoints
-
-##### GET /weather-alert/{state}/{city}
-
-Get the most important weather alert for a specific city and state.
-
-**Parameters:**
-- `state` (path parameter): The state name or abbreviation
-- `city` (path parameter): The city name
-
-**Response:**
-```json
-{
-  "city": "New York",
-  "state": "NY",
-  "latitude": 40.7128,
-  "longitude": -74.0060,
-  "headline": "Flood Warning issued for New York, NY",
-  "event": "Flood Warning",
-  "severity": "MODERATE",
-  "urgency": "EXPECTED",
-  "expires": "2023-07-15 18:00:00 UTC",
-  "description": "The National Weather Service has issued a Flood Warning...",
-  "instruction": "Move to higher ground. Do not drive through flooded areas..."
-}
-```
-
-If no alert is active for the location, the alert-specific fields will be `null`.
-
-**Example Request:**
-```
-GET /weather-alert/NY/New%20York
-```
-
-**Error Responses:**
-- `404 Not Found`: If the location cannot be found or geocoded
-- `500 Internal Server Error`: For server-side errors
-
-#### API Documentation
-
-FastAPI automatically generates interactive API documentation. Once the server is running, you can access:
-
-- Swagger UI: `http://localhost:8080/docs`
-- ReDoc: `http://localhost:8080/redoc`
 
 ## Technical Background
 
@@ -174,16 +112,16 @@ Build the image:
 docker build -t weatherbox:latest .
 ```
 
-Run the container (maps host port 8080 to container port 8000):
+Run the container (maps host port 8081 to container port 8000):
 
 ```
-docker run --rm -p 8080:8000 weatherbox:latest
+docker run --rm -p 8081:8000 weatherbox:latest
 ```
 
 The API will be available at:
-- http://localhost:8080
-- Docs: http://localhost:8080/docs
-- ReDoc: http://localhost:8080/redoc
+- http://localhost:8081
+- Docs: http://localhost:8081/docs
+- ReDoc: http://localhost:8081/redoc
 
 To change the port, adjust the -p flag (format: host_port:container_port). The container listens on 8000 by default.
 
@@ -207,3 +145,81 @@ Notes:
 - In some environments, using `-p 8000:8000` may result in "connection refused" from the host. Explicitly binding to `127.0.0.1` resolves this by ensuring the port is reachable on localhost.
 - Once running, the API docs are available at `http://localhost:8000/docs` and ReDoc at `http://localhost:8000/redoc`.
 - View logs with `podman logs <container_id>` and stop the container with `podman stop <container_id>`.
+
+## Local Development Setup
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/WeatherBox.git
+   cd WeatherBox
+   ```
+
+2. Create a virtual environment and activate it:
+   ```
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   ```
+
+3. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### Usage
+
+#### Starting the API Server
+
+To start the API server for local development, run:
+
+```
+WeatherBox/.venv/bin/python -m uvicorn api:app --reload --host 0.0.0.0 --port 8081
+```
+
+This will start the server on `http://localhost:8081` and should be reachable by other clients on the network (assuming no firewall blocking on the host).
+
+#### API Usage
+
+##### GET /weather-alert/{state}/{city}
+
+Get the most important weather alert for a specific city and state.
+
+**Parameters:**
+- `state` (path parameter): The state name or abbreviation
+- `city` (path parameter): The city name
+
+**Response:**
+```json
+{
+  "city": "New York",
+  "state": "NY",
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "headline": "Flood Warning issued for New York, NY",
+  "event": "Flood Warning",
+  "severity": "MODERATE",
+  "urgency": "EXPECTED",
+  "expires": "2023-07-15 18:00:00 UTC",
+  "description": "The National Weather Service has issued a Flood Warning...",
+  "instruction": "Move to higher ground. Do not drive through flooded areas..."
+}
+```
+
+If no alert is active for the location, the alert-specific fields will be `null`.
+
+**Example Request:**
+```
+curl http://localhost:8081/weather-alert/NY/New%20York
+```
+
+**Error Responses:**
+- `404 Not Found`: If the location cannot be found or geocoded
+- `500 Internal Server Error`: For server-side errors
+
+#### Interactive API Documentation
+
+FastAPI automatically generates interactive API documentation. Once the server is running, you can access:
+
+- Swagger UI: `http://localhost:8081/docs`
+- ReDoc: `http://localhost:8081/redoc`
