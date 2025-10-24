@@ -79,6 +79,7 @@ class WeatherAlert:
     certainty: AlertCertainty
     onset: Optional[datetime]
     expires: datetime
+    nws_headline: str = ""
     
     @property
     def is_expired(self) -> bool:

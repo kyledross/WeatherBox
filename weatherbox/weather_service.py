@@ -60,6 +60,14 @@ class WeatherAlertService:
                     self.logger.warning(f"Alert {properties.get('id')} has no expiration date, skipping")
                     continue
 
+                # Extract NWSheadline from parameters
+                nws_headline = ""
+                parameters = properties.get("parameters")
+                if parameters:
+                    nws_headline_list = parameters.get("NWSheadline")
+                    if nws_headline_list and len(nws_headline_list) > 0:
+                        nws_headline = nws_headline_list[0]
+
                 # Create alert object
                 alert = WeatherAlert(
                     id=properties.get("id", ""),
@@ -72,7 +80,8 @@ class WeatherAlertService:
                     urgency=AlertUrgency.from_string(properties.get("urgency", "")),
                     certainty=AlertCertainty.from_string(properties.get("certainty", "")),
                     onset=onset,
-                    expires=expires
+                    expires=expires,
+                    nws_headline=nws_headline
                 )
 
                 alerts.append(alert)

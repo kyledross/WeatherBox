@@ -22,6 +22,7 @@ class WeatherAlertResponse(BaseModel):
     expires: Optional[str] = None
     description: Optional[str] = None
     instruction: Optional[str] = None
+    nws_headline: Optional[str] = None
 
 @app.get("/weather-alert/{state}/{city}", response_model=WeatherAlertResponse)
 def get_weather_alert(state: str, city: str):
@@ -47,7 +48,8 @@ def get_weather_alert(state: str, city: str):
                 "urgency": alert.urgency.name,
                 "expires": alert.expires.astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC'),
                 "description": alert.description,
-                "instruction": alert.instruction
+                "instruction": alert.instruction,
+                "nws_headline": alert.nws_headline
             })
 
         return response
