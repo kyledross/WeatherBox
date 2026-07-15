@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 import geocoder
 import requests
@@ -14,6 +14,7 @@ class WeatherAlertService:
 
     # Maximum number of entries in coordinates cache
     MAX_CACHE_SIZE = 100
+    ALERT_CACHE_TTL_SECONDS = 60
 
     def __init__(self, user_agent: str = "WeatherBox/1.0"):
         """
@@ -25,6 +26,7 @@ class WeatherAlertService:
         self.user_agent = user_agent
         self.logger = logging.getLogger(__name__)
         self._coordinates_cache = {}
+        self._alerts_cache = {}
 
 
     def _maintain_cache_size(self):
@@ -34,6 +36,17 @@ class WeatherAlertService:
             oldest_keys = sorted(self._coordinates_cache.keys())[:len(self._coordinates_cache) - self.MAX_CACHE_SIZE + 1]
             for key in oldest_keys:
                 del self._coordinates_cache[key]
+
+    def _maintain_alert_cache_size(self):
+        """Remove oldest entries if alert cache exceeds maximum size."""
+        if len(self._alerts_cache) >= self.MAX_CACHE_SIZE:
+            items_by_oldest = sorted(
+                self._alerts_cache.items(),
+                key=lambda item: item[1][0]
+            )
+            number_to_remove = len(self._alerts_cache) - self.MAX_CACHE_SIZE + 1
+            for key, _ in items_by_oldest[:number_to_remove]:
+                del self._alerts_cache[key]
 
 
     def _parse_alerts(self, data: Dict, same_code: str) -> List[WeatherAlert]:
@@ -85,7 +98,6 @@ class WeatherAlertService:
                 )
 
                 alerts.append(alert)
-
             return alerts
 
     def _parse_date(self, date_str: Optional[str]) -> Optional[datetime]:
@@ -152,6 +164,16 @@ class WeatherAlertService:
         Returns:
             List of WeatherAlert objects.
         """
+        cache_key = f"{latitude},{longitude}"
+        now = datetime.now()
+        cached_entry = self._alerts_cache.get(cache_key)
+
+        if cached_entry:
+            cached_at, cached_alerts = cached_entry
+            if now - cached_at <= timedelta(seconds=self.ALERT_CACHE_TTL_SECONDS):
+                self.logger.info(f"Using cached weather alerts for coordinates: {latitude}, {longitude}")
+                return cached_alerts
+
         self.logger.info(f"Getting weather alerts for coordinates: {latitude}, {longitude}")
 
         # First, get the forecast office and zone information from the coordinates
@@ -173,6 +195,8 @@ class WeatherAlertService:
 
             if not county or not zone:
                 self.logger.warning(f"Could not determine county or zone for coordinates: {latitude}, {longitude}")
+                self._maintain_alert_cache_size()
+                self._alerts_cache[cache_key] = (datetime.now(), [])
                 return []
 
             # Extract the zone ID from the URL
@@ -205,6 +229,8 @@ class WeatherAlertService:
                 alerts.extend(zone_alerts)
             except Exception as e:
                 self.logger.warning(f"Failed to get alerts for zone {zone_id}: {str(e)}")
+            self._maintain_alert_cache_size()
+            self._alerts_cache[cache_key] = (datetime.now(), alerts)
 
             return alerts
 
